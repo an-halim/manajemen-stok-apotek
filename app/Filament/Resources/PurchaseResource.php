@@ -51,9 +51,14 @@ class PurchaseResource extends Resource
                             ->collapsible(),
                         Forms\Components\Section::make('Payment')
                             ->schema([
-                                Forms\Components\Placeholder::make('created_at')
-                                    ->label('Total Purchase Price')
-                                    ->content('Rp.100.000,00'),
+                                Forms\Components\TextInput::make('total_price')
+                                    ->label('Total Price')
+                                    ->disabled() // Prevent manual input
+                                    ->reactive() // Update automatically
+                                    ->dehydrated(false) // Don't save this field to the database
+                                    ->afterStateUpdated(fn ($set, $get) =>
+                                        $set('total_price', collect($get('items'))->sum(fn ($item) => ($item['purchase_price'] ?? 0) * ($item['quantity_purchased'] ?? 1000)))
+                                    ),
                                 Forms\Components\Select::make('payment_method')
                                     ->options([
                                         'Cash' => 'Cash',
@@ -186,12 +191,14 @@ class PurchaseResource extends Resource
                         'md' => 2,
                         'lg' => 1,
                     ])
-                    ->required(),
+                    ->required()
+                    ->reactive(),
 
                 Forms\Components\TextInput::make('purchase_price')
                     ->label('Unit Price')
                     ->numeric()
                     ->required()
+                    ->reactive()
                     ->columnSpan([
                         'md' => 2,
                     ]),
@@ -226,7 +233,8 @@ class PurchaseResource extends Resource
             ->columns([
                 'md' => 10,
             ])
-            ->required();
+            ->required()
+            ->reactive(); // Ensure this triggers updates when repeater items change
     }
 
      /** @return Builder<Order> */
