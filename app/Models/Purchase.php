@@ -25,9 +25,9 @@ class Purchase extends Model
     }
 
     // Relationship: A purchase is linked to a batch
-    public function batch(): BelongsTo
+    public function inventory(): BelongsTo
     {
-        return $this->belongsTo(Inventory::class);
+        return $this->belongsTo(Inventory::class, 'purchase_id');
     }
 
     public function items()

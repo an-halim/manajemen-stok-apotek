@@ -8,6 +8,7 @@ use App\Filament\Resources\PurchaseResource\RelationManagers;
 use App\Models\Purchase;
 use App\Models\Products;
 use App\Models\Supplier;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -65,9 +66,10 @@ class PurchaseResource extends Resource
                                         'Bank Transfer' => 'Bank Transfer',
                                     ]),
                             ])
-                            ->columns(2),
+                            ->columns(2)
+                            ->hidden(fn (?Purchase $record) => $record !== null),
                     ])
-                    ->columnSpan(['lg' => fn (?Purchase $record) => $record === null ? 3 : 2]),
+                    ->columnSpan(['lg' => fn (?Purchase $record) => $record === null ? 4 : 3]),
 
                 Forms\Components\Group::make()
                     ->schema([
@@ -94,7 +96,7 @@ class PurchaseResource extends Resource
                     ->columnSpan(['lg' => 1])
                     ->hidden(fn (?Purchase $record) => $record === null),
             ])
-            ->columns(3);
+            ->columns(4);
     }
 
     public static function table(Table $table): Table
@@ -112,6 +114,7 @@ class PurchaseResource extends Resource
                     ->getStateUsing(function ($record) {
                         return $record->items()->sum('purchase_price');
                     })
+                    ->money('IDR')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -158,13 +161,42 @@ class PurchaseResource extends Resource
          return [
             Forms\Components\Select::make('supplier_id')
                  ->label('Supplier')
-                 ->options(Supplier::query()->pluck('supplier_name', 'id'))
+                 ->relationship('supplier', 'supplier_name')
                  ->required()
                  ->reactive()
                  ->disableOptionsWhenSelectedInSiblingRepeaterItems()
-                 ->searchable(),
+                 ->searchable()
+                 ->createOptionForm([
+                    Forms\Components\TextInput::make('supplier_name')
+                        ->required()
+                        ->maxLength(255),
+
+                    Forms\Components\TextInput::make('email')
+                        ->label('Email address')
+                        ->required()
+                        ->email()
+                        ->maxLength(255)
+                        ->unique(),
+
+                    Forms\Components\TextInput::make('phone_number')
+                        ->maxLength(255),
+
+                    Forms\Components\TextInput::make('contact_person')
+                        ->maxLength(255),
+
+                    Forms\Components\TextInput::make('address')
+                        ->maxLength(255),
+
+                ])
+                ->createOptionAction(function (Action $action) {
+                    return $action
+                        ->modalHeading('Create supplier')
+                        ->modalSubmitActionLabel('Create supplier')
+                        ->modalWidth('lg');
+                }),
              Forms\Components\DatePicker::make('purchase_date')
-                 ->required(),
+                 ->required()
+                 ->default(Carbon::now()),
          ];
      }
 
@@ -189,7 +221,6 @@ class PurchaseResource extends Resource
                     ->default(1)
                     ->columnSpan([
                         'md' => 2,
-                        'lg' => 1,
                     ])
                     ->required()
                     ->reactive(),
@@ -202,6 +233,15 @@ class PurchaseResource extends Resource
                     ->columnSpan([
                         'md' => 2,
                     ]),
+
+                Forms\Components\TextInput::make('batch_code')
+                    ->label('Batch Code')
+                    ->columnSpan([
+                        'md' => 2,
+                        'lg' => 4,
+                    ])
+                    ->required()
+                    ->reactive(),
 
 
                 Forms\Components\DatePicker::make('expiry_date')

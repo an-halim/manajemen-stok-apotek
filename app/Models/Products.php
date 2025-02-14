@@ -58,4 +58,30 @@ class Products extends Model
             ?->batches // Fetch related batches
             ->first(); // Return the first suitable batch
     }
+
+    /**
+     * Get the total quantity of a product in stock.
+     *
+     * @return int
+     */
+    public function getStockQuantityAttribute(): int
+    {
+        return $this->batches->sum('quantity');
+    }
+
+    /**
+     * Get the total purchase price of a product in stock.
+     *
+     * @return float
+     */
+    public function getStockPurchasePriceAttribute(): float
+    {
+        return $this->batches->sum(fn ($batch) => $batch->purchase_price * $batch->quantity);
+    }
+
+    public function saleItems(): HasMany
+    {
+        return $this->hasMany(SaleItem::class);
+    }
+
 }

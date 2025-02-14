@@ -26,6 +26,7 @@ class SupplierPurchaseSeeder extends Seeder
             'quantity_purchased' => 100,
             'purchase_price' => 50.00,
             'expiry_date' => now()->addMonths(12),
+            'batch_code' => 'BATCH-001',
         ]);
 
         PurchaseItem::create([
@@ -34,6 +35,7 @@ class SupplierPurchaseSeeder extends Seeder
             'quantity_purchased' => 50,
             'purchase_price' => 25.00,
             'expiry_date' => now()->addMonths(6),
+            'batch_code' => 'BATCH-002',
         ]);
     }
 }

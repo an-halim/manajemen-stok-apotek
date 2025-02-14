@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sale extends Model
 {
@@ -12,18 +13,12 @@ class Sale extends Model
 
     protected $table = 'customer_sales';
 
-    protected $primaryKey = 'sale_id';
-
     protected $fillable = [
-        'batch_id',
-        'quantity_sold',
-        'total_price',
+        'sale_date',
     ];
 
-
-    // Relationship: A sale is linked to a batch
-    public function batch(): BelongsTo
+    public function saleItems(): HasMany
     {
-        return $this->belongsTo(Inventory::class);
+        return $this->hasMany(SaleItem::class);
     }
 }

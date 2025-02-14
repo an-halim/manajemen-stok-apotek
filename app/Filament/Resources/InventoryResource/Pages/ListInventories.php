@@ -16,4 +16,9 @@ class ListInventories extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    public function getTableRecordKey($record): string
+    {
+        return $record;
+    }
 }

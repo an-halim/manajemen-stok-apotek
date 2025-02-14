@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PurchaseItem extends Model
 {
@@ -15,6 +17,7 @@ class PurchaseItem extends Model
         'quantity_purchased',
         'purchase_price',
         'expiry_date',
+        'batch_code',
     ];
 
     public static function boot()
@@ -25,21 +28,22 @@ class PurchaseItem extends Model
         static::created(function ($purchaseItem) {
             // Check if a batch for the same product and expiry date already exists
             $existing = Inventory::where('product_id', $purchaseItem->product_id)
-                ->where('expiry_date', $purchaseItem->expiry_date)
+                ->where('batch_code', $purchaseItem->batch_code)
                 ->first();
 
             if ($existing) {
                 // Update the quantity of the existing batch
                 $existing->increment('quantity_received', $purchaseItem->quantity_purchased);
+                $existing->increment('quantity_available', $purchaseItem->quantity_purchased);
             } else {
                 // Create a new batch
                 Inventory::create([
+                    'purchase_id' => $purchaseItem->purchase_id,
                     'product_id' => $purchaseItem->product_id,
                     'quantity_received' => $purchaseItem->quantity_purchased,
                     'quantity_available' => $purchaseItem->quantity_purchased,
                     // 'purchase_price' => $purchaseItem->purchase_price,
-                    'expiry_date' => $purchaseItem->expiry_date,
-                    'purchase_date' => $purchaseItem->purchase->purchase_date,
+                    'batch_code' => $purchaseItem->batch_code,
                 ]);
             }
         });
@@ -54,5 +58,21 @@ class PurchaseItem extends Model
     public function product()
     {
         return $this->belongsTo(Products::class, 'product_id');
+    }
+
+    /**
+     * Define a relationship to Inventory using batch_code.
+     */
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(Inventory::class, 'purchase_id');
+    }
+
+    public static function getMonthlyPurchaseData($months = 3)
+    {
+        return self::selectRaw('MONTH(created_at) as month, SUM(quantity_purchased) as total_in')
+            ->whereBetween('created_at', [Carbon::now()->subMonths($months)->startOfMonth(), Carbon::now()->endOfMonth()])
+            ->groupBy('month')
+            ->pluck('total_in', 'month'); // ['9' => 50, '10' => 30]
     }
 }
