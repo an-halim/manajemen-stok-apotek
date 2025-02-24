@@ -86,7 +86,7 @@ class PurchaseResource extends Resource
                                     }),
                                 Forms\Components\Placeholder::make('Payment method')
                                     ->label('Total Purchase Price')
-                                    ->content('Cash'),
+                                    ->content(fn (Purchase $record): ?string => $record->payment_method),
                             ]),
                         Forms\Components\Section::make()
                             ->schema([
@@ -125,6 +125,14 @@ class PurchaseResource extends Resource
                         return $total;
                     })
                     ->money('IDR')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('total_item')
+                    ->label('Total Item')
+                    ->getStateUsing(function ($record) {
+                        $total = $record->items->count();
+
+                        return $total;
+                    })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -235,7 +243,16 @@ class PurchaseResource extends Resource
                         'md' => 2,
                     ]),
                 Forms\Components\TextInput::make('purchase_price')
-                    ->label('Unit Price')
+                    ->label('Price/Unit')
+                    ->numeric()
+                    ->required()
+                    ->live(onBlur: true)
+                    ->columnSpan([
+                        'md' => 2,
+                    ]),
+
+                Forms\Components\TextInput::make('selling_price')
+                    ->label('Sale Price/Unit')
                     ->numeric()
                     ->required()
                     ->live(onBlur: true)

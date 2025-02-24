@@ -74,7 +74,8 @@ class SaleResource extends Resource
                                     ->default(fn ($record) => $record?->payment_method)
                                     ->required(),
                             ])
-                            ->columns(2),
+                            ->columns(2)
+                            ->hidden(fn (?Sale $record) => $record !== null),
                     ])
                     ->columnSpan(['lg' => fn (?Sale $record) => $record === null ? 3 : 2]),
 
@@ -87,7 +88,7 @@ class SaleResource extends Resource
                                     ->content(fn (Sale $record): ?string => $record->items()->sum('selling_price')),
                                 Forms\Components\Placeholder::make('Payment Method')
                                     ->label('Payment Method')
-                                    ->content('Cash'),
+                                    ->content(fn (Sale $record): ?string => $record->payment_method),
                             ]),
                         Forms\Components\Section::make()
                             ->schema([
@@ -120,6 +121,16 @@ class SaleResource extends Resource
                     ->searchable()
                     ->sortable(),
 
+
+                Tables\Columns\TextColumn::make('total_item')
+                    ->label('Total Item')
+                    ->getStateUsing(function ($record) {
+                        $total = $record->items->count();
+
+                        return $total;
+                    })
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('total')
                     ->label('Total Price')
                     ->getStateUsing(function ($record) {
@@ -137,9 +148,6 @@ class SaleResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                // Tables\Columns\TextColumn::make('total_price')
-                //     ->label('Total Price')
-                //     ->getValueUsing(fn (Sale $record) => 'Rp ' . number_format($record->items()->sum('selling_price'), 2, ',', '.')),
             ])
             ->filters([
                 //
@@ -257,9 +265,9 @@ class SaleResource extends Resource
                     }),
 
                 Forms\Components\TextInput::make('selling_price')
-                    ->label('Unit Price')
-                    // ->disabled()
-                    // ->dehydrated(false)
+                    ->label('Price/Unit')
+                    ->disabled()
+                    ->dehydrated(true)
                     ->columnSpan([
                         'md' => 2,
                     ])
