@@ -33,6 +33,12 @@ class Inventory extends Model
         return $this->hasMany(SaleItem::class);
     }
 
+    // Relationship: A batch belongs to a product
+    public function purchaseItem(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseItem::class, 'product_id', 'product_id');
+    }
+
     // Relationship: to Purchase
     public function purchase(): HasMany
     {
@@ -42,6 +48,16 @@ class Inventory extends Model
     public function purchaseItems(): HasMany
     {
         return $this->hasMany(PurchaseItem::class, 'product_id', 'product_id');
+    }
+
+    public function inventoryItems()
+    {
+        return $this->hasMany(Inventory::class, 'product_id', 'id');
+    }
+
+    public function getSupplierAttribute()
+    {
+        return $this->belongsTo(Purchase::class, 'purchase_id');
     }
 
     public function getRouteKeyName(): string

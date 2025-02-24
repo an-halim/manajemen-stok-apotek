@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('sale_id')->constrained('customer_sales')->onDelete('cascade');
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
-            $table->foreignId('batch_id')->constrained('inventory')->onDelete('cascade');
+            $table->foreignId('inventory_id')->constrained('inventory')->onDelete('cascade');
             $table->integer('sale_quantity');
             $table->decimal('selling_price', 10, 2);
             $table->timestamps();

@@ -10,7 +10,10 @@ return new class extends Migration
     {
         Schema::create('customer_sales', function (Blueprint $table) {
             $table->id();
+            $table->string('invoice_number');
+            $table->string('customer_name');
             $table->date('sale_date');
+            $table->string('payment_method');
             $table->timestamps();
         });
     }

@@ -10,9 +10,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class SaleItemsRelationManager extends RelationManager
+class InventoryItemsRelationManager extends RelationManager
 {
-    protected static string $relationship = 'purchaseItems';
+    protected static string $relationship = 'inventoryItems';
 
     public function form(Form $form): Form
     {
@@ -29,11 +29,14 @@ class SaleItemsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('product_name')
             ->columns([
-                Tables\Columns\TextColumn::make('purchase.supplier.supplier_name'),
+                Tables\Columns\TextColumn::make('getSupplierAttribute.supplier.supplier_name'),
                 Tables\Columns\TextColumn::make('product.name'),
-                Tables\Columns\TextColumn::make('quantity_purchased'),
-                Tables\Columns\TextColumn::make('purchase.purchase_date'),
-                Tables\Columns\TextColumn::make('expiry_date'),
+                Tables\Columns\TextColumn::make('quantity_received'),
+                Tables\Columns\TextColumn::make('quantity_available'),
+                Tables\Columns\TextColumn::make('getSupplierAttribute.purchase_date')
+                    ->label('Purchase Date'),
+                Tables\Columns\TextColumn::make('purchaseItem.expiry_date')
+                    ->label('Expiry Date'),
                 Tables\Columns\TextColumn::make('batch_code'),
             ])
             ->filters([

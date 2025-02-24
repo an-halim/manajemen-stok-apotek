@@ -27,25 +27,25 @@ class PurchaseItem extends Model
         // Add a hook after a PurchaseItem is created
         static::created(function ($purchaseItem) {
             // Check if a batch for the same product and expiry date already exists
-            $existing = Inventory::where('product_id', $purchaseItem->product_id)
-                ->where('batch_code', $purchaseItem->batch_code)
-                ->first();
+            // $existing = Inventory::where('product_id', $purchaseItem->product_id)
+            //     ->where('batch_code', $purchaseItem->batch_code)
+            //     ->first();
 
-            if ($existing) {
-                // Update the quantity of the existing batch
-                $existing->increment('quantity_received', $purchaseItem->quantity_purchased);
-                $existing->increment('quantity_available', $purchaseItem->quantity_purchased);
-            } else {
-                // Create a new batch
-                Inventory::create([
-                    'purchase_id' => $purchaseItem->purchase_id,
-                    'product_id' => $purchaseItem->product_id,
-                    'quantity_received' => $purchaseItem->quantity_purchased,
-                    'quantity_available' => $purchaseItem->quantity_purchased,
-                    // 'purchase_price' => $purchaseItem->purchase_price,
-                    'batch_code' => $purchaseItem->batch_code,
-                ]);
-            }
+            // if ($existing) {
+            //     // Update the quantity of the existing batch
+            //     $existing->increment('quantity_received', $purchaseItem->quantity_purchased);
+            //     $existing->increment('quantity_available', $purchaseItem->quantity_purchased);
+            // } else {
+            // Create a new batch
+            Inventory::create([
+                'purchase_id' => $purchaseItem->purchase_id,
+                'product_id' => $purchaseItem->product_id,
+                'quantity_received' => $purchaseItem->quantity_purchased,
+                'quantity_available' => $purchaseItem->quantity_purchased,
+                // 'purchase_price' => $purchaseItem->purchase_price,
+                'batch_code' => $purchaseItem->batch_code,
+            ]);
+            // }
         });
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\SaleItem;
 use Filament\Widgets\ChartWidget;
 
 class ProductBestSeller extends ChartWidget
@@ -14,10 +15,13 @@ class ProductBestSeller extends ChartWidget
 
     protected function getData(): array
     {
+
+        $topProducts = SaleItem::getTopSellingProducts();
+
         return [
             'datasets' => [
                 [
-                    'data' => [1000, 5, 9, 10],
+                    'data' => $topProducts->pluck('total_sold')->toArray(),
                     'backgroundColor'=> [
                         'rgb(255, 99, 132)',
                         'rgb(54, 162, 235)',
@@ -28,7 +32,7 @@ class ProductBestSeller extends ChartWidget
                     'borderRadius' => 5,
                 ]
             ],
-            'labels' => ['Paratusin 500gram', 'Panadol 100gram', 'Betadine 50gram', 'Caviplex 100gram'],
+            'labels' => $topProducts->pluck('product_name')->toArray(),
         ];
     }
 

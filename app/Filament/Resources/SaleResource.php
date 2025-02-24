@@ -5,7 +5,9 @@ namespace App\Filament\Resources;
 use App\Filament\Clusters\Product\Resources\ProductsResource;
 use App\Filament\Resources\SaleResource\Pages;
 use App\Filament\Resources\SaleResource\RelationManagers;
+use App\Models\Inventory;
 use App\Models\Products;
+use App\Models\PurchaseItem;
 use App\Models\Sale;
 use Carbon\Carbon;
 use Filament\Forms;
@@ -17,6 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Repeater;
+use Illuminate\Support\Arr;
 
 class SaleResource extends Resource
 {
@@ -32,6 +35,10 @@ class SaleResource extends Resource
             ->schema([
                 Forms\Components\Group::make()
                     ->schema([
+                        Forms\Components\Section::make()
+                            ->schema(static::getInvoiceFormSchema())
+                            ->columns(2),
+
                         Forms\Components\Section::make()
                             ->schema(static::getDetailsFormSchema())
                             ->columns(2),
@@ -51,23 +58,25 @@ class SaleResource extends Resource
                             ->collapsible(),
                         Forms\Components\Section::make('Payment')
                             ->schema([
-                                Forms\Components\TextInput::make('total_price')
-                                    ->label('Total Price')
-                                    ->disabled() // Prevent manual input
-                                    ->reactive() // Update automatically
-                                    ->dehydrated(false) // Don't save this field to the database
-                                    ->afterStateUpdated(fn ($set, $get) =>
-                                        $set('total_price', collect($get('items'))->sum(fn ($item) => ($item['purchase_price'] ?? 0) * ($item['quantity_purchased'] ?? 1000)))
-                                    ),
+                                Forms\Components\Placeholder::make('total_price')
+                                    ->content(function (Forms\Get $get) {
+                                        $map = Arr::map($get('items'), function ($item) {
+                                            return $item['selling_price'] * $item['sale_quantity'];
+                                        });
+                                         return 'Rp ' . number_format(array_sum($map), 2, ',', '.');
+                                    }),
                                 Forms\Components\Select::make('payment_method')
+                                    ->label('Payment Method')
                                     ->options([
                                         'Cash' => 'Cash',
                                         'Bank Transfer' => 'Bank Transfer',
-                                    ]),
+                                    ])
+                                    ->default(fn ($record) => $record?->payment_method)
+                                    ->required(),
                             ])
                             ->columns(2),
                     ])
-                    ->columnSpan(['lg' => fn (?Purchase $record) => $record === null ? 3 : 2]),
+                    ->columnSpan(['lg' => fn (?Sale $record) => $record === null ? 3 : 2]),
 
                 Forms\Components\Group::make()
                     ->schema([
@@ -75,24 +84,24 @@ class SaleResource extends Resource
                             ->schema([
                                 Forms\Components\Placeholder::make('Total')
                                     ->label('Total Purchase Price')
-                                    ->content(fn (Purchase $record): ?string => $record->items()->sum('purchase_price')),
-                                Forms\Components\Placeholder::make('Payment method')
-                                    ->label('Total Purchase Price')
+                                    ->content(fn (Sale $record): ?string => $record->items()->sum('selling_price')),
+                                Forms\Components\Placeholder::make('Payment Method')
+                                    ->label('Payment Method')
                                     ->content('Cash'),
                             ]),
                         Forms\Components\Section::make()
                             ->schema([
                                 Forms\Components\Placeholder::make('created_at')
                                     ->label('Created at')
-                                    ->content(fn (Purchase $record): ?string => $record->created_at?->diffForHumans()),
+                                    ->content(fn (Sale $record): ?string => $record->created_at?->diffForHumans()),
 
                                 Forms\Components\Placeholder::make('updated_at')
                                     ->label('Last modified at')
-                                    ->content(fn (Purchase $record): ?string => $record->updated_at?->diffForHumans()),
+                                    ->content(fn (Sale $record): ?string => $record->updated_at?->diffForHumans()),
                             ]),
                     ])
                     ->columnSpan(['lg' => 1])
-                    ->hidden(fn (?Purchase $record) => $record === null),
+                    ->hidden(fn (?Sale $record) => $record === null),
             ])
             ->columns(3);
     }
@@ -101,7 +110,36 @@ class SaleResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('invoice_number')
+                    ->label('Invoice Number')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('customer_name')
+                    ->label('Customer Name')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('total')
+                    ->label('Total Price')
+                    ->getStateUsing(function ($record) {
+                        $total = $record->items->map(function ($item) {
+                            return ($item->selling_price ?? 0) * ($item->sale_quantity ?? 1);
+                        })->sum();
+
+                        return $total;
+                    })
+                    ->money('IDR')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('sale_date')
+                    ->label('Sale Date')
+                    ->searchable()
+                    ->sortable(),
+
+                // Tables\Columns\TextColumn::make('total_price')
+                //     ->label('Total Price')
+                //     ->getValueUsing(fn (Sale $record) => 'Rp ' . number_format($record->items()->sum('selling_price'), 2, ',', '.')),
             ])
             ->filters([
                 //
@@ -142,51 +180,102 @@ class SaleResource extends Resource
      public static function getDetailsFormSchema(): array
      {
          return [
-            Forms\Components\Select::make('customer_name')
+            Forms\Components\TextInput::make('customer_name')
                  ->label('Customer Name')
-                 ->required()
-                 ->reactive()
-                 ->disableOptionsWhenSelectedInSiblingRepeaterItems()
-                 ->searchable(),
-             Forms\Components\DatePicker::make('date')
+                 ->required(),
+             Forms\Components\DatePicker::make('sale_date')
                  ->required()
                  ->default(Carbon::now())
+                 ->required(),
          ];
      }
 
+      /** @return Forms\Components\Component[] */
+      public static function getInvoiceFormSchema(): array
+      {
+          return [
+            Forms\Components\TextInput::make('invoice_number')
+                    ->label('Invoice Number')
+                    ->disabled()
+                    ->dehydrated()
+                    ->default(fn () => Sale::generateInvoiceNumber())
+                    ->required(),
+          ];
+      }
+
      public static function getItemsRepeater(): Repeater
     {
-        return Repeater::make('saleItems')
+        return Repeater::make('items')
             ->relationship()
             ->schema([
                 Forms\Components\Select::make('product_id')
                     ->label('Product')
-                    ->options(Products::query()->pluck('name', 'id'))
+                    ->options(
+                        Products::whereIn('id', Inventory::pluck('product_id'))
+                                ->pluck('name', 'id')
+                    )
                     ->required()
                     ->reactive()
-                    ->columnSpan([
-                        'md' => 4,
-                    ])
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        $nearExpiredItem = PurchaseItem::where('product_id', $state)
+                            ->where('expiry_date', '>=', now())
+                            ->orderBy('expiry_date') // Get the nearest expiry first
+                            ->first();
+
+                        if ($nearExpiredItem) {
+                            $set('selling_price', $nearExpiredItem->selling_price ?? 0);
+                            $set('available_stock', Inventory::where('product_id', $state)->sum('quantity_available'));
+                        } else {
+                            $set('selling_price', 0);
+                            $set('available_stock', 0);
+                        }
+                    })
+                    ->columnSpan(fn (string $context) => $context === 'create' ? 3 : 4)
                     ->searchable(),
 
-                Forms\Components\TextInput::make('quantity_purchased')
-                    ->label('Quantity')
-                    ->numeric()
-                    ->default(1)
+                Forms\Components\TextInput::make('available_stock')
+                    ->label('Available Stock')
+                    ->disabled()
+                    ->dehydrated(false)
                     ->columnSpan([
                         'md' => 2,
                     ])
-                    ->required()
-                    ->reactive(),
+                    ->default(0)
+                    ->visible(fn (string $context) => $context === 'create'),
 
-                Forms\Components\TextInput::make('purchase_price')
-                    ->label('Unit Price')
+                Forms\Components\TextInput::make('sale_quantity')
+                    ->label('Quantity')
                     ->numeric()
                     ->required()
-                    ->reactive()
+                    ->default(1)
+                    ->live(onBlur: true)
+                    ->columnSpan([
+                        'md' => 1,
+                    ])
+                    ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                        $set('total', $state * ($get('selling_price') ?? 0));
+                    }),
+
+                Forms\Components\TextInput::make('selling_price')
+                    ->label('Unit Price')
+                    // ->disabled()
+                    // ->dehydrated(false)
                     ->columnSpan([
                         'md' => 2,
-                    ]),
+                    ])
+                    ->default(0)
+                    ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                        $set('total', ($get('sale_quantity') ?? 0) * $state);
+                    }),
+
+                Forms\Components\TextInput::make('total')
+                    ->label('Total')
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->columnSpan([
+                        'md' => 2,
+                    ])
+                    ->default(0),
             ])
             ->extraItemActions([
                 Action::make('openProduct')

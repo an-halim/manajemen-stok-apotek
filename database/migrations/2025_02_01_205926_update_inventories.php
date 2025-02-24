@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('inventory', function (Blueprint $table) {
             $table->dropColumn(['purchase_date', 'expiry_date']);
-            $table->string('batch_code')->unique();
+            $table->string('batch_code');
             $table->foreignId('purchase_id')->constrained('supplier_purchases')->onDelete('cascade');
         });
     }

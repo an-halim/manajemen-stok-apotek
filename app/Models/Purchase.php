@@ -16,6 +16,7 @@ class Purchase extends Model
         'supplier_id',
         'product_id',
         'purchase_date',
+        'payment_method',
     ];
 
     // Relationship: A purchase belongs to a supplier

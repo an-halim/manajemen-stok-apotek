@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Arr;
 
 class PurchaseResource extends Resource
 {
@@ -52,14 +53,13 @@ class PurchaseResource extends Resource
                             ->collapsible(),
                         Forms\Components\Section::make('Payment')
                             ->schema([
-                                Forms\Components\TextInput::make('total_price')
-                                    ->label('Total Price')
-                                    ->disabled() // Prevent manual input
-                                    ->reactive() // Update automatically
-                                    ->dehydrated(false) // Don't save this field to the database
-                                    ->afterStateUpdated(fn ($set, $get) =>
-                                        $set('total_price', collect($get('items'))->sum(fn ($item) => ($item['purchase_price'] ?? 0) * ($item['quantity_purchased'] ?? 1000)))
-                                    ),
+                                Forms\Components\Placeholder::make('total_price')
+                                    ->content(function (Forms\Get $get) {
+                                        $map = Arr::map($get('items'), function ($item) {
+                                            return $item['purchase_price'] * $item['quantity_purchased'];
+                                        });
+                                         return 'Rp ' . number_format(array_sum($map), 2, ',', '.');
+                                    }),
                                 Forms\Components\Select::make('payment_method')
                                     ->options([
                                         'Cash' => 'Cash',
@@ -77,7 +77,13 @@ class PurchaseResource extends Resource
                             ->schema([
                                 Forms\Components\Placeholder::make('Total')
                                     ->label('Total Purchase Price')
-                                    ->content(fn (Purchase $record): ?string => $record->items()->sum('purchase_price')),
+                                    ->content(function (Purchase $record) {
+                                        $total = $record->items->map(function ($item) {
+                                            return ($item->purchase_price ?? 0) * ($item->quantity_purchased ?? 1);
+                                        })->sum();
+
+                                        return 'Rp ' . number_format($total, 2, ',', '.');
+                                    }),
                                 Forms\Components\Placeholder::make('Payment method')
                                     ->label('Total Purchase Price')
                                     ->content('Cash'),
@@ -103,8 +109,8 @@ class PurchaseResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('supplier.id')
-                    ->getStateUsing(fn ($record): ?string => Supplier::find($record->id)?->supplier_name ?? null)
+                Tables\Columns\TextColumn::make('supplier.supplier_name')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('purchase_date')
                     ->date()
@@ -112,7 +118,11 @@ class PurchaseResource extends Resource
                 Tables\Columns\TextColumn::make('total')
                     ->label('Total Purchase Price')
                     ->getStateUsing(function ($record) {
-                        return $record->items()->sum('purchase_price');
+                        $total = $record->items->map(function ($item) {
+                            return ($item->purchase_price ?? 0) * ($item->quantity_purchased ?? 1);
+                        })->sum();
+
+                        return $total;
                     })
                     ->money('IDR')
                     ->sortable(),
@@ -218,18 +228,17 @@ class PurchaseResource extends Resource
                 Forms\Components\TextInput::make('quantity_purchased')
                     ->label('Quantity')
                     ->numeric()
+                    ->required()
                     ->default(1)
+                    ->live(onBlur: true)
                     ->columnSpan([
                         'md' => 2,
-                    ])
-                    ->required()
-                    ->reactive(),
-
+                    ]),
                 Forms\Components\TextInput::make('purchase_price')
                     ->label('Unit Price')
                     ->numeric()
                     ->required()
-                    ->reactive()
+                    ->live(onBlur: true)
                     ->columnSpan([
                         'md' => 2,
                     ]),

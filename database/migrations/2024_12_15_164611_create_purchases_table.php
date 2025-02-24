@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id('id');
             $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
             $table->date('purchase_date');
+            $table->string('payment_method');
             $table->timestamps();
         });
     }

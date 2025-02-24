@@ -16,4 +16,11 @@ class EditPurchase extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    public function getTitle(): string
+    {
+        $record = $this->getRecord();
+
+        return $record->product->name ?? 'Edit Purchase';
+    }
 }

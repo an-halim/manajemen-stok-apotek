@@ -32,6 +32,24 @@ class SupplierSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'supplier_name' => 'Pharma Supplier A',
+                'contact_person' => 'John Martin',
+                'email' => 'Parhma@example.com',
+                'phone_number' => '0987654321',
+                'address' => '456 High St, City B',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'supplier_name' => 'Medical Supplies B',
+                'contact_person' => 'Jane Smith',
+                'email' => 'J@example.com',
+                'phone_number' => '0987654321',
+                'address' => '456 High St, City B',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }
