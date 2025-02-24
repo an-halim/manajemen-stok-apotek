@@ -42,6 +42,7 @@ class SupplierPurchaseSeeder extends Seeder
         $purchase = Purchase::create([
             'supplier_id' => 2, // Ensure supplier exists
             'purchase_date' => now(),
+            'payment_method' => 'cash'
         ]);
 
         // Add items to the purchase
