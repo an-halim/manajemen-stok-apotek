@@ -14,15 +14,16 @@ class SaleSeeder extends Seeder
      */
     public function run(): void
     {
-        $purchase = Sale::create([
+        $sale = Sale::create([
             'sale_date' => now(),
             'invoice_number' => Sale::generateInvoiceNumber(),
             'customer_name' => 'John Doe',
+            'payment_method' => 'cash'
         ]);
 
-        // Add items to the purchase
+        // Add items to the sale
         SaleItem::create([
-            'sale_id' => $purchase->id,
+            'sale_id' => $sale->id,
             'product_id' => 1, // Ensure product exists
             'inventory_id' => 1, // Ensure inventory exists
             'sale_quantity' => 100,
@@ -30,22 +31,23 @@ class SaleSeeder extends Seeder
         ]);
 
         SaleItem::create([
-            'sale_id' => $purchase->id,
+            'sale_id' => $sale->id,
             'product_id' => 2,
             'inventory_id' => 2,
             'sale_quantity' => 100,
             'selling_price' => 50.00,
         ]);
 
-        $purchase = Sale::create([
+        $sale = Sale::create([
             'sale_date' => now(),
             'invoice_number' => Sale::generateInvoiceNumber(),
             'customer_name' => 'Jane Smith',
+            'payment_method' => 'cash'
         ]);
 
-        // Add items to the purchase
+        // Add items to the sale
         SaleItem::create([
-            'sale_id' => $purchase->id,
+            'sale_id' => $sale->id,
             'product_id' => 1, // Ensure product exists
             'inventory_id' => 1, // Ensure inventory exists
             'sale_quantity' => 100,
