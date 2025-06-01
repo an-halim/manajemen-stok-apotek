@@ -10,7 +10,7 @@ class Category extends Model
     use HasFactory;
 
 
-    protected $fillable = ['name', 'description'];
+    protected $fillable = ['name', 'description', 'slug'];
 
     // Define the relationship with products
     public function products()
