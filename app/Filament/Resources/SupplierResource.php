@@ -21,6 +21,11 @@ class SupplierResource extends Resource
 
     protected static ?string $navigationGroup = 'Master Data';
 
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) Supplier::count();
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -45,20 +50,20 @@ class SupplierResource extends Resource
                             ->columnSpanFull(),
                     ])
                     ->columns(2)
-                    ->columnSpan(['lg' => fn (?Supplier $record) => $record === null ? 3 : 2]),
+                    ->columnSpan(['lg' => fn(?Supplier $record) => $record === null ? 3 : 2]),
 
                 Forms\Components\Section::make()
                     ->schema([
                         Forms\Components\Placeholder::make('created_at')
                             ->label('Created at')
-                            ->content(fn (Supplier $record): ?string => $record->created_at?->diffForHumans()),
+                            ->content(fn(Supplier $record): ?string => $record->created_at?->diffForHumans()),
 
                         Forms\Components\Placeholder::make('updated_at')
                             ->label('Last modified at')
-                            ->content(fn (Supplier $record): ?string => $record->updated_at?->diffForHumans()),
+                            ->content(fn(Supplier $record): ?string => $record->updated_at?->diffForHumans()),
                     ])
                     ->columnSpan(['lg' => 1])
-                    ->hidden(fn (?Supplier $record) => $record === null),
+                    ->hidden(fn(?Supplier $record) => $record === null),
             ])
             ->columns(3);
     }

@@ -14,9 +14,19 @@ class Dashboard extends \Filament\Pages\Dashboard
     {
         return [
             FilterAction::make()
+                ->label(__('Filter'))
+                ->modalHeading(__('Filter Data'))
+                ->modalSubmitActionLabel(__('Terapkan'))
+                ->modalCancelActionLabel(__('Batal'))
+                ->icon('heroicon-m-funnel')
+                ->color('gray')
                 ->form([
-                    DatePicker::make('startDate'),
-                    DatePicker::make('endDate'),
+                    DatePicker::make('startDate')
+                        ->label(__('Tanggal Mulai'))
+                        ->default(now()->startOfMonth()),
+                    DatePicker::make('endDate')
+                        ->label(__('Tanggal Selesai'))
+                        ->default(now()->endOfMonth()),
                 ]),
         ];
     }

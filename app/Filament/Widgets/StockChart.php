@@ -23,7 +23,7 @@ class StockChart extends ChartWidget
             return [$date->format('n') => $date->format('M')]; // '9' => 'Sep'
         });
 
-         // Call Model Methods 🚀
+        // Call Model Methods 🚀
         $purchaseData = PurchaseItem::getMonthlyPurchaseData(3);
         $salesData = SaleItem::getMonthlySalesData(3);
 
@@ -39,7 +39,7 @@ class StockChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Out',
+                    'label' => 'Keluar',
                     'data' => $outData,
                     'backgroundColor' => 'rgba(39, 55, 245, 0.8)',
                     'borderColor' => 'rgba(39, 55, 245, 0.8)',
@@ -47,7 +47,7 @@ class StockChart extends ChartWidget
                     'borderRadius' => 5,
                 ],
                 [
-                    'label' => 'In',
+                    'label' => 'Masuk',
                     'data' => $inData,
                     'backgroundColor' => 'rgba(85, 155, 243, 0.8)',
                     'borderColor' => 'rgba(85, 155, 243, 0.8)',

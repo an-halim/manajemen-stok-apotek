@@ -23,12 +23,16 @@ use Illuminate\Support\Arr;
 class PurchaseResource extends Resource
 {
     protected static ?string $model = Purchase::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
-
+    protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
     protected static ?string $navigationGroup = 'Transaksi';
-
     protected static ?string $navigationLabel = 'Pembelian';
+    protected static ?string $modelLabel = 'Pembelian';
+    protected static ?string $pluralModelLabel = 'Pembelian';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) Purchase::count();
+    }
 
     public static function form(Form $form): Form
     {
@@ -47,7 +51,7 @@ class PurchaseResource extends Resource
                                     ->modalDescription('All existing items will be removed from the item.')
                                     ->requiresConfirmation()
                                     ->color('danger')
-                                    ->action(fn (Forms\Set $set) => $set('items', [])),
+                                    ->action(fn(Forms\Set $set) => $set('items', [])),
                             ])
                             ->schema([
                                 static::getItemsRepeater(),
@@ -60,7 +64,7 @@ class PurchaseResource extends Resource
                                         $map = Arr::map($get('items'), function ($item) {
                                             return $item['purchase_price'] * $item['quantity_purchased'];
                                         });
-                                         return 'Rp ' . number_format(array_sum($map), 2, ',', '.');
+                                        return 'Rp ' . number_format(array_sum($map), 2, ',', '.');
                                     }),
                                 Forms\Components\Select::make('payment_method')
                                     ->options([
@@ -69,9 +73,9 @@ class PurchaseResource extends Resource
                                     ]),
                             ])
                             ->columns(2)
-                            ->hidden(fn (?Purchase $record) => $record !== null),
+                            ->hidden(fn(?Purchase $record) => $record !== null),
                     ])
-                    ->columnSpan(['lg' => fn (?Purchase $record) => $record === null ? 4 : 3]),
+                    ->columnSpan(['lg' => fn(?Purchase $record) => $record === null ? 4 : 3]),
 
                 Forms\Components\Group::make()
                     ->schema([
@@ -88,21 +92,21 @@ class PurchaseResource extends Resource
                                     }),
                                 Forms\Components\Placeholder::make('Payment method')
                                     ->label('Total Purchase Price')
-                                    ->content(fn (Purchase $record): ?string => $record->payment_method),
+                                    ->content(fn(Purchase $record): ?string => $record->payment_method),
                             ]),
                         Forms\Components\Section::make()
                             ->schema([
                                 Forms\Components\Placeholder::make('created_at')
                                     ->label('Created at')
-                                    ->content(fn (Purchase $record): ?string => $record->created_at?->diffForHumans()),
+                                    ->content(fn(Purchase $record): ?string => $record->created_at?->diffForHumans()),
 
                                 Forms\Components\Placeholder::make('updated_at')
                                     ->label('Last modified at')
-                                    ->content(fn (Purchase $record): ?string => $record->updated_at?->diffForHumans()),
+                                    ->content(fn(Purchase $record): ?string => $record->updated_at?->diffForHumans()),
                             ]),
                     ])
                     ->columnSpan(['lg' => 1])
-                    ->hidden(fn (?Purchase $record) => $record === null),
+                    ->hidden(fn(?Purchase $record) => $record === null),
             ])
             ->columns(4);
     }
@@ -175,18 +179,18 @@ class PurchaseResource extends Resource
     }
 
 
-     /** @return Forms\Components\Component[] */
-     public static function getDetailsFormSchema(): array
-     {
-         return [
+    /** @return Forms\Components\Component[] */
+    public static function getDetailsFormSchema(): array
+    {
+        return [
             Forms\Components\Select::make('supplier_id')
-                 ->label('Supplier')
-                 ->relationship('supplier', 'supplier_name')
-                 ->required()
-                 ->reactive()
-                 ->disableOptionsWhenSelectedInSiblingRepeaterItems()
-                 ->searchable()
-                 ->createOptionForm([
+                ->label('Supplier')
+                ->relationship('supplier', 'supplier_name')
+                ->required()
+                ->reactive()
+                ->disableOptionsWhenSelectedInSiblingRepeaterItems()
+                ->searchable()
+                ->createOptionForm([
                     Forms\Components\TextInput::make('supplier_name')
                         ->required()
                         ->maxLength(255),
@@ -214,13 +218,13 @@ class PurchaseResource extends Resource
                         ->modalSubmitActionLabel('Create supplier')
                         ->modalWidth('lg');
                 }),
-             Forms\Components\DatePicker::make('purchase_date')
-                 ->required()
-                 ->default(Carbon::now()),
-         ];
-     }
+            Forms\Components\DatePicker::make('purchase_date')
+                ->required()
+                ->default(Carbon::now()),
+        ];
+    }
 
-     public static function getItemsRepeater(): Repeater
+    public static function getItemsRepeater(): Repeater
     {
         return Repeater::make('items')
             ->relationship()
@@ -294,7 +298,7 @@ class PurchaseResource extends Resource
 
                         return ProductsResource::getUrl('edit', ['record' => $product]);
                     }, shouldOpenInNewTab: true)
-                    ->hidden(fn (array $arguments, Repeater $component): bool => blank($component->getRawItemState($arguments['item'])['product_id'])),
+                    ->hidden(fn(array $arguments, Repeater $component): bool => blank($component->getRawItemState($arguments['item'])['product_id'])),
             ])
             ->defaultItems(1)
             ->hiddenLabel()
@@ -305,9 +309,9 @@ class PurchaseResource extends Resource
             ->reactive(); // Ensure this triggers updates when repeater items change
     }
 
-     /** @return Builder<Order> */
-     public static function getEloquentQuery(): Builder
-     {
-         return parent::getEloquentQuery()->withoutGlobalScope(SoftDeletingScope::class);
-     }
+    /** @return Builder<Order> */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->withoutGlobalScope(SoftDeletingScope::class);
+    }
 }

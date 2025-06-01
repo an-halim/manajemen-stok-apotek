@@ -32,6 +32,11 @@ class SaleResource extends Resource
 
     protected static ?string $navigationLabel = 'Penjualan';
 
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) Sale::count();
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -172,6 +177,12 @@ class SaleResource extends Resource
                     ->searchable()
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('medicine_redeemtion')
+                    ->label('Dengan Resep Dokter')
+                    ->badge()
+                    ->formatStateUsing(fn($state) => $state ? 'Resep' : 'Langsung')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('customer_name')
                     ->label('Customer Name')
                     ->searchable()
@@ -206,7 +217,15 @@ class SaleResource extends Resource
 
             ])
             ->filters([
-                //
+                Tables\Filters\Filter::make('medicine_redeemtion')
+                    ->label('Dengan Resep Dokter')
+                    ->query(fn(Builder $query) => $query->where('medicine_redeemtion', true)),
+            ])->headerActions([])->actions([
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->icon('heroicon-o-ellipsis-horizontal'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -360,7 +379,7 @@ class SaleResource extends Resource
                     ])
                     ->default(0),
 
-                Forms\Components\Textarea::make('instruksi')
+                Forms\Components\Textarea::make('remarks')
                     ->label('Catatan/Instruksi Dokter')
                     ->placeholder('Contoh: Diminum sebelum makan, 3x sehari')
                     ->columnSpan([
