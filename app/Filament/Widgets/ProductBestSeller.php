@@ -7,9 +7,9 @@ use Filament\Widgets\ChartWidget;
 
 class ProductBestSeller extends ChartWidget
 {
-    protected static ?string $heading = 'Best Seller Products';
+    protected static ?string $heading = 'Produk Terlaris';
 
-    protected static ?string $description = 'Overview of top 5 best selling products';
+    protected static ?string $description = 'Gambaran umum dari 5 produk terlaris';
 
     protected static ?string $maxHeight = '300px';
 

@@ -9,9 +9,9 @@ use Filament\Widgets\ChartWidget;
 
 class StockChart extends ChartWidget
 {
-    protected static ?string $heading = 'Stock Chart';
+    protected static ?string $heading = 'Grafik Stok';
 
-    protected static ?string $description = 'Overview of statistics for last 4 months';
+    protected static ?string $description = 'Ikhtisar statistik untuk 4 bulan terakhir';
 
     protected static ?string $maxHeight = '300px';
 

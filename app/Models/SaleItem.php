@@ -20,6 +20,7 @@ class SaleItem extends Model
         'inventory_id',
         'sale_quantity',
         'selling_price',
+        'remarks',
     ];
 
     protected static function boot()

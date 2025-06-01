@@ -30,9 +30,11 @@ class InventoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
 
-    protected static ?string $navigationGroup = 'Stock Management';
+    protected static ?string $navigationGroup = 'Manajemen Stok';
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+
+    protected static ?string $navigationLabel = 'Gudang';
 
     public static function form(Form $form): Form
     {

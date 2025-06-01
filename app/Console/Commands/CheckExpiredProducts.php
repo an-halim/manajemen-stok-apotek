@@ -34,9 +34,11 @@ class CheckExpiredProducts extends Command
         // Get today's date
         $today = now()->toDateString();
 
-        // Check for products expiring within the next 7 days
-        $sevenDaysFromNow = Carbon::now()->addDays(10)->toDateString();
-        $expiringSoonProducts = PurchaseItem::all();
+        // Check for products expiring within the next 30 days
+        $sevenDaysFromNow = Carbon::now()->addDays(90)->toDateString();
+        $expiringSoonProducts = PurchaseItem::where('expiry_date', '>=', $today)
+            ->where('expiry_date', '<=', $sevenDaysFromNow)
+            ->get();
 
         $this->info('Products expiring soon:');
         foreach ($expiringSoonProducts as $product) {

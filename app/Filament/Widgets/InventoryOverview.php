@@ -16,18 +16,18 @@ class InventoryOverview extends BaseWidget
 
         return [
             Stat::make(
-                label: 'Total Earnings',
+                label: 'Total Pendapatan',
                 value: 'Rp ' . number_format(Sale::getTotalEarnings($startDate, $endDate), 0, ',', '.'),
             ),
             Stat::make(
-                label: 'Total Sales',
+                label: 'Total Penjualan',
                 value: Sale::query()
                     ->when($startDate, fn (Builder $query) => $query->whereDate('created_at', '>=', $startDate))
                     ->when($endDate, fn (Builder $query) => $query->whereDate('created_at', '<=', $endDate))
                     ->count(),
             ),
             Stat::make(
-                label: 'Total Purchases',
+                label: 'Total Pembelian',
                 value: Purchase::query()
                     ->when($startDate, fn (Builder $query) => $query->whereDate('created_at', '>=', $startDate))
                     ->when($endDate, fn (Builder $query) => $query->whereDate('created_at', '<=', $endDate))

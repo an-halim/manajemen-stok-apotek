@@ -18,6 +18,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Repeater;
 use Illuminate\Support\Arr;
 
@@ -27,7 +28,9 @@ class SaleResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
 
-    protected static ?string $navigationGroup = 'Transactions';
+    protected static ?string $navigationGroup = 'Transaksi';
+
+    protected static ?string $navigationLabel = 'Penjualan';
 
     public static function form(Form $form): Form
     {
@@ -43,19 +46,71 @@ class SaleResource extends Resource
                             ->schema(static::getDetailsFormSchema())
                             ->columns(2),
 
+
+                        Grid::make(2)
+                            ->schema([
+                                Forms\Components\Select::make('medicine_redeemtion')
+                                    ->label('💊 Tebus Obat Berdasarkan')
+                                    ->hint('📋 Pilih mode pembelian obat sesuai kebutuhan.')
+                                    ->options([
+                                        true => 'Resep dari Dokter',
+                                        false => 'Pembelian Langsung',
+                                    ])
+                                    ->columns(2)
+                                    ->reactive()
+                                    ->required(),
+                            ]),
+
+                        Forms\Components\Placeholder::make('info')
+                            ->label('')
+                            ->content('🛈 Pilih dulu jenis penjualan untuk menampilkan item.')
+                            ->visible(fn($get) => $get('mode') === ''),
+
+                        Forms\Components\Section::make('Detail Resep')
+                            ->headerActions([])
+                            ->schema([
+                                Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('prescriber')
+                                            ->label('Dokter Pemberi Resep')
+                                            ->placeholder('Masukkan nama dokter'),
+
+                                        Forms\Components\Textarea::make('instructions')
+                                            ->label('Instruksi Dokter')
+                                            ->placeholder('Contoh: Diminum sebelum makan, 3x sehari'),
+
+                                        Forms\Components\Textarea::make('remarks')
+                                            ->label('Catatan Tambahan')
+                                            ->placeholder('Catatan lainnya (opsional)'),
+
+                                        Forms\Components\FileUpload::make('prescription')
+                                            ->label('Bukti Resep')
+                                            ->placeholder('Upload bukti resep pasien')
+                                            ->image()
+                                            ->directory('uploads/bukti_resep')
+                                            ->maxSize(2048), // Limit file size to 2MB
+                                    ]),
+                            ])
+                            ->hidden(fn($get) => $get('medicine_redeemtion') != true)
+                            ->collapsible(),
+
                         Forms\Components\Section::make('Sale items')
+                            ->heading('🧾 Daftar Penjualan')
+                            ->description('Daftar item yang akan dijual.')
                             ->headerActions([
                                 Action::make('reset')
                                     ->modalHeading('Are you sure?')
                                     ->modalDescription('All existing items will be removed from the item.')
                                     ->requiresConfirmation()
                                     ->color('danger')
-                                    ->action(fn (Forms\Set $set) => $set('items', [])),
+                                    ->action(fn(Forms\Set $set) => $set('items', [])),
                             ])
                             ->schema([
-                                static::getItemsRepeater(),
+                                static::getItemsRepeater(fn($get) => $get),
                             ])
+                            ->visible(fn($get) => !blank($get('medicine_redeemtion')))
                             ->collapsible(),
+
                         Forms\Components\Section::make('Payment')
                             ->schema([
                                 Forms\Components\Placeholder::make('total_price')
@@ -63,7 +118,7 @@ class SaleResource extends Resource
                                         $map = Arr::map($get('items'), function ($item) {
                                             return $item['selling_price'] * $item['sale_quantity'];
                                         });
-                                         return 'Rp ' . number_format(array_sum($map), 2, ',', '.');
+                                        return 'Rp ' . number_format(array_sum($map), 2, ',', '.');
                                     }),
                                 Forms\Components\Select::make('payment_method')
                                     ->label('Payment Method')
@@ -71,13 +126,14 @@ class SaleResource extends Resource
                                         'Cash' => 'Cash',
                                         'Bank Transfer' => 'Bank Transfer',
                                     ])
-                                    ->default(fn ($record) => $record?->payment_method)
+                                    ->default(fn($record) => $record?->payment_method)
                                     ->required(),
                             ])
+                            ->visible(fn($get) => !blank($get('medicine_redeemtion')))
                             ->columns(2)
-                            ->hidden(fn (?Sale $record) => $record !== null),
+                            ->hidden(fn(?Sale $record) => $record !== null),
                     ])
-                    ->columnSpan(['lg' => fn (?Sale $record) => $record === null ? 3 : 2]),
+                    ->columnSpan(['lg' => fn(?Sale $record) => $record === null ? 3 : 2]),
 
                 Forms\Components\Group::make()
                     ->schema([
@@ -85,24 +141,24 @@ class SaleResource extends Resource
                             ->schema([
                                 Forms\Components\Placeholder::make('Total')
                                     ->label('Total Purchase Price')
-                                    ->content(fn (Sale $record): ?string => $record->items()->sum('selling_price')),
+                                    ->content(fn(Sale $record): ?string => $record->items()->sum('selling_price')),
                                 Forms\Components\Placeholder::make('Payment Method')
                                     ->label('Payment Method')
-                                    ->content(fn (Sale $record): ?string => $record->payment_method),
+                                    ->content(fn(Sale $record): ?string => $record->payment_method),
                             ]),
                         Forms\Components\Section::make()
                             ->schema([
                                 Forms\Components\Placeholder::make('created_at')
                                     ->label('Created at')
-                                    ->content(fn (Sale $record): ?string => $record->created_at?->diffForHumans()),
+                                    ->content(fn(Sale $record): ?string => $record->created_at?->diffForHumans()),
 
                                 Forms\Components\Placeholder::make('updated_at')
                                     ->label('Last modified at')
-                                    ->content(fn (Sale $record): ?string => $record->updated_at?->diffForHumans()),
+                                    ->content(fn(Sale $record): ?string => $record->updated_at?->diffForHumans()),
                             ]),
                     ])
                     ->columnSpan(['lg' => 1])
-                    ->hidden(fn (?Sale $record) => $record === null),
+                    ->hidden(fn(?Sale $record) => $record === null),
             ])
             ->columns(3);
     }
@@ -184,44 +240,55 @@ class SaleResource extends Resource
     //      return parent::getEloquentQuery()->withoutGlobalScope(SoftDeletingScope::class);
     //  }
 
-      /** @return Forms\Components\Component[] */
-     public static function getDetailsFormSchema(): array
-     {
-         return [
+    /** @return Forms\Components\Component[] */
+    public static function getDetailsFormSchema(): array
+    {
+        return [
             Forms\Components\TextInput::make('customer_name')
-                 ->label('Customer Name')
-                 ->required(),
-             Forms\Components\DatePicker::make('sale_date')
-                 ->required()
-                 ->default(Carbon::now())
-                 ->required(),
-         ];
-     }
+                ->label('Customer Name')
+                ->required(),
+            Forms\Components\DatePicker::make('sale_date')
+                ->required()
+                ->default(Carbon::now())
+                ->required(),
+        ];
+    }
 
-      /** @return Forms\Components\Component[] */
-      public static function getInvoiceFormSchema(): array
-      {
-          return [
+    /** @return Forms\Components\Component[] */
+    public static function getInvoiceFormSchema(): array
+    {
+        return [
             Forms\Components\TextInput::make('invoice_number')
-                    ->label('Invoice Number')
-                    ->disabled()
-                    ->dehydrated()
-                    ->default(fn () => Sale::generateInvoiceNumber())
-                    ->required(),
-          ];
-      }
+                ->label('Invoice Number')
+                ->disabled()
+                ->dehydrated()
+                ->default(fn() => Sale::generateInvoiceNumber())
+                ->required(),
+        ];
+    }
 
-     public static function getItemsRepeater(): Repeater
+    public static function getItemsRepeater($get): Repeater
     {
         return Repeater::make('items')
             ->relationship()
             ->schema([
                 Forms\Components\Select::make('product_id')
                     ->label('Product')
-                    ->options(
-                        Products::whereIn('id', Inventory::pluck('product_id'))
-                                ->pluck('name', 'id')
-                    )
+                    ->options(function (callable $get) {
+                        $mode = $get('../../medicine_redeemtion'); // Akses state di luar repeater
+                        $query = \App\Models\Products::whereIn(
+                            'id',
+                            \App\Models\Inventory::pluck('product_id')
+                        );
+
+                        if ($mode === true) {
+                            $query->where('is_over_the_counter', false);
+                        } elseif ($mode === false) {
+                            $query->where('is_over_the_counter', true);
+                        }
+
+                        return $query->pluck('name', 'id');
+                    })
                     ->required()
                     ->reactive()
                     ->afterStateUpdated(function ($state, callable $set) {
@@ -238,18 +305,18 @@ class SaleResource extends Resource
                             $set('available_stock', 0);
                         }
                     })
-                    ->columnSpan(fn (string $context) => $context === 'create' ? 3 : 4)
+                    ->columnSpan(fn(string $context) => $context === 'create' ? 4 : 4)
                     ->searchable(),
 
                 Forms\Components\TextInput::make('available_stock')
-                    ->label('Available Stock')
+                    ->label('Stock')
                     ->disabled()
                     ->dehydrated(false)
                     ->columnSpan([
-                        'md' => 2,
+                        'md' => 1,
                     ])
                     ->default(0)
-                    ->visible(fn (string $context) => $context === 'create'),
+                    ->visible(fn(string $context) => $context === 'create'),
 
                 Forms\Components\TextInput::make('sale_quantity')
                     ->label('Quantity')
@@ -284,6 +351,13 @@ class SaleResource extends Resource
                         'md' => 2,
                     ])
                     ->default(0),
+
+                Forms\Components\Textarea::make('instruksi')
+                    ->label('Catatan/Instruksi Dokter')
+                    ->placeholder('Contoh: Diminum sebelum makan, 3x sehari')
+                    ->columnSpan([
+                        'md' => 4,
+                    ]),
             ])
             ->extraItemActions([
                 Action::make('openProduct')
@@ -300,7 +374,7 @@ class SaleResource extends Resource
 
                         return ProductsResource::getUrl('edit', ['record' => $product]);
                     }, shouldOpenInNewTab: true)
-                    ->hidden(fn (array $arguments, Repeater $component): bool => blank($component->getRawItemState($arguments['item'])['product_id'])),
+                    ->hidden(fn(array $arguments, Repeater $component): bool => blank($component->getRawItemState($arguments['item'])['product_id'])),
             ])
             ->defaultItems(1)
             ->hiddenLabel()

@@ -24,13 +24,14 @@ class Products extends Model
         'images',
         'category_id',
         'status',
+        'is_over_the_counter'
     ];
 
-      // Define the relationship with categories
-      public function category()
-      {
-          return $this->belongsTo(Category::class);
-      }
+    // Define the relationship with categories
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     // Relationship: A product can have many batches
     public function batches(): HasMany
@@ -39,7 +40,7 @@ class Products extends Model
     }
 
 
-     /**
+    /**
      * Search for a product by partial keyword (case-insensitive)
      * and return the first batch based on FIFO and nearest expiry.
      *
@@ -51,8 +52,8 @@ class Products extends Model
         return self::whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($keyword) . '%']) // Case-insensitive partial match
             ->with(['batches' => function ($query) {
                 $query->where('quantity', '>', 0) // Ensure stock is available
-                      ->orderBy('purchase_date', 'asc') // FIFO: Earliest purchase first
-                      ->orderBy('expiry_date', 'asc'); // Nearest expiry date
+                    ->orderBy('purchase_date', 'asc') // FIFO: Earliest purchase first
+                    ->orderBy('expiry_date', 'asc'); // Nearest expiry date
             }])
             ->first() // Take the first product match
             ?->batches // Fetch related batches
@@ -76,12 +77,11 @@ class Products extends Model
      */
     public function getStockPurchasePriceAttribute(): float
     {
-        return $this->batches->sum(fn ($batch) => $batch->purchase_price * $batch->quantity);
+        return $this->batches->sum(fn($batch) => $batch->purchase_price * $batch->quantity);
     }
 
     public function saleItems(): HasMany
     {
         return $this->hasMany(SaleItem::class);
     }
-
 }

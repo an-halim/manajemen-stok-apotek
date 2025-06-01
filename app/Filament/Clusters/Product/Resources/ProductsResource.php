@@ -69,6 +69,14 @@ class ProductsResource extends Resource
                                     ->inline(false)
                                     ->required()
                                     ->default(false),
+
+                                Forms\Components\Toggle::make('is_over_the_counter')
+                                    ->label('Dijual Bebas')
+                                    ->onColor('success')
+                                    ->offColor('danger')
+                                    ->inline(false)
+                                    ->required()
+                                    ->default(true),
                             ])
                             ->columns(2),
 
@@ -91,14 +99,22 @@ class ProductsResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('category')
-                    ->getStateUsing(fn ($record): ?string => Category::find($record->category_id)?->name ?? null)
+                    ->label('Kategori')
+                    ->getStateUsing(fn($record): ?string => Category::find($record->category_id)?->name ?? null)
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('name')
+                    ->label('Nama Produk')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('unit')
+                    ->label('Satuan')
                     ->searchable(),
+                Tables\Columns\IconColumn::make('is_over_the_counter')
+                    ->label('Dijual Bebas')
+                    ->boolean()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
+
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

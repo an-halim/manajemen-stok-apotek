@@ -19,6 +19,7 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Althinect\FilamentSpatieRolesPermissions\FilamentSpatieRolesPermissionsPlugin;
+use pxlrbt\FilamentSpotlight\SpotlightPlugin;
 
 class DashboardPanelProvider extends PanelProvider
 {
@@ -59,6 +60,9 @@ class DashboardPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->plugins([
+                SpotlightPlugin::make(),
             ]);
     }
 }

@@ -26,7 +26,9 @@ class PurchaseResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
 
-    protected static ?string $navigationGroup = 'Transactions';
+    protected static ?string $navigationGroup = 'Transaksi';
+
+    protected static ?string $navigationLabel = 'Pembelian';
 
     public static function form(Form $form): Form
     {

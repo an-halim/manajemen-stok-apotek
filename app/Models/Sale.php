@@ -18,6 +18,11 @@ class Sale extends Model
         'invoice_number',
         'customer_name',
         'payment_method',
+        'medicine_redeemtion',
+        'prescriber',
+        'instructions',
+        'remarks',
+        'prescription'
     ];
 
     protected static function boot()
@@ -68,8 +73,8 @@ class Sale extends Model
     public static function getTotalEarnings($startDate = null, $endDate = null)
     {
         return self::query()
-            ->when($startDate, fn ($query) => $query->whereDate('created_at', '>=', $startDate))
-            ->when($endDate, fn ($query) => $query->whereDate('created_at', '<=', $endDate))
+            ->when($startDate, fn($query) => $query->whereDate('created_at', '>=', $startDate))
+            ->when($endDate, fn($query) => $query->whereDate('created_at', '<=', $endDate))
             ->withSum('items as total_earning', \DB::raw('sale_quantity * selling_price'))
             ->get()
             ->sum('total_earning');

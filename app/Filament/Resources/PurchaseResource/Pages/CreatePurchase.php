@@ -25,9 +25,9 @@ class CreatePurchase extends CreateRecord
         $user = auth()->user();
 
         Notification::make()
-            ->title('New purchase order created')
+            ->title('Pesanan pembelian baru dibuat')
             ->icon('heroicon-o-shopping-bag')
-            ->body("**{$suplierName} stored {$record->items->count()} products.**")
+            ->body("**{$suplierName} menyimpan {$record->items->count()} produk.**")
             ->sendToDatabase($user);
     }
 }
