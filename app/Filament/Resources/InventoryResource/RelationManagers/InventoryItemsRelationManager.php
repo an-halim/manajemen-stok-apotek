@@ -36,12 +36,27 @@ class InventoryItemsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('getSupplierAttribute.purchase_date')
                     ->label('Purchase Date'),
                 Tables\Columns\TextColumn::make('purchaseItem.expiry_date')
-                    ->label('Expiry Date'),
+                    ->label('Expiry Date')
+                    ->badge()
+                    ->color(
+                        fn($record) =>
+                        $record->purchaseItem?->expiry_date
+                            ? (
+                                \Carbon\Carbon::parse($record->purchaseItem->expiry_date)->isPast()
+                                ? 'danger'
+                                : (\Carbon\Carbon::parse($record->purchaseItem->expiry_date)->diffInMonths(now()) <= 3
+                                    ? 'danger'
+                                    : (\Carbon\Carbon::parse($record->purchaseItem->expiry_date)->diffInMonths(now()) <= 6
+                                        ? 'warning'
+                                        : 'success'
+                                    )
+                                )
+                            )
+                            : null
+                    ),
                 Tables\Columns\TextColumn::make('batch_code'),
             ])
-            ->filters([
-
-            ])
+            ->filters([])
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
             ])

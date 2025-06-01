@@ -275,19 +275,27 @@ class SaleResource extends Resource
                 Forms\Components\Select::make('product_id')
                     ->label('Product')
                     ->options(function (callable $get) {
-                        $mode = $get('../../medicine_redeemtion'); // Akses state di luar repeater
+                        $mode = $get('../../medicine_redeemtion'); // Access parent state
+
+                        // Start with base query for products in inventory
                         $query = \App\Models\Products::whereIn(
                             'id',
                             \App\Models\Inventory::pluck('product_id')
                         );
 
-                        if ($mode === true) {
-                            $query->where('is_over_the_counter', false);
-                        } elseif ($mode === false) {
+                        // If mode is explicitly false, filter only OTC
+                        if ($mode == 0 || $mode == false) {
                             $query->where('is_over_the_counter', true);
                         }
 
-                        return $query->pluck('name', 'id');
+                        // Get products with their is_over_the_counter status
+                        $products = $query->get(['id', 'name', 'is_over_the_counter']);
+
+                        // Map to options with label
+                        return $products->mapWithKeys(function ($product) {
+                            $label = $product->name . ' [' . ($product->is_over_the_counter ? 'OTC' : 'Resep') . ']';
+                            return [$product->id => $label];
+                        });
                     })
                     ->required()
                     ->reactive()
