@@ -249,7 +249,7 @@ class PurchaseResource extends Resource
                         'md' => 2,
                     ]),
                 Forms\Components\TextInput::make('purchase_price')
-                    ->label('Price/Unit')
+                    ->label('Harga Beli')
                     ->numeric()
                     ->required()
                     ->live(onBlur: true)
@@ -258,7 +258,7 @@ class PurchaseResource extends Resource
                     ]),
 
                 Forms\Components\TextInput::make('selling_price')
-                    ->label('Sale Price/Unit')
+                    ->label('Harga Jual/Unit')
                     ->numeric()
                     ->required()
                     ->live(onBlur: true)

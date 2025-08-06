@@ -87,13 +87,6 @@ class SaleResource extends Resource
                                         Forms\Components\Textarea::make('remarks')
                                             ->label('Catatan Tambahan')
                                             ->placeholder('Catatan lainnya (opsional)'),
-
-                                        Forms\Components\FileUpload::make('prescription')
-                                            ->label('Bukti Resep')
-                                            ->placeholder('Upload bukti resep pasien')
-                                            ->image()
-                                            ->directory('uploads/bukti_resep')
-                                            ->maxSize(2048), // Limit file size to 2MB
                                     ]),
                             ])
                             ->hidden(fn($get) => $get('medicine_redeemtion') != true)

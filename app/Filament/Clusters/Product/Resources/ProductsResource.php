@@ -60,6 +60,19 @@ class ProductsResource extends Resource
                                             ->modalWidth('lg');
                                     }),
 
+                                Forms\Components\Select::make('unit')
+                                    ->label('Satuan')
+                                    ->options([
+                                        'pcs' => 'Pcs',
+                                        'box' => 'Box',
+                                        'btl' => 'Botol',
+                                        'dus' => 'Dus',
+                                        'pack' => 'Pack',
+                                        'strip' => 'Strip',
+                                    ])
+                                    ->required()
+                                    ->default('pcs'),
+
                                 Forms\Components\MarkdownEditor::make('description')
                                     ->columnSpan('full'),
 
